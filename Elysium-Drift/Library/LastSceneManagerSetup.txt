@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Scenes/DataSelectScene.unity
+- path: Assets/Scenes/ControllerViewScene.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
