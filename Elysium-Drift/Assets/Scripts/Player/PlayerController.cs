@@ -7,7 +7,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 3;
-    [SerializeField] private float jumnpPower = 3;
+    [SerializeField] private float jumpPower = 3;
     private CharacterController _characterController;
     private Transform _transform;
     private Vector3 _monoVelocity;
