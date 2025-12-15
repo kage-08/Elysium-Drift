@@ -3,59 +3,47 @@ using System.Collections;
 
 public class PlayerAttack : MonoBehaviour
 {
-    public PlayerStatus status;
-    public Collider swordCollider;
-    public Camera playerCamera;
+    [SerializeField] private float attackCooldown = 0.5f;
+    [SerializeField] private float attackDuration = 0.2f;
+    [SerializeField] private SwordHitbox swordHitbox;
 
-    private bool isAttacking = false;
+    private PlayerStatus status;
+    private PlayerMagic magic;
+    private bool canAttack = true;
+
+    void Start()
+    {
+        status = GetComponent<PlayerStatus>();
+        magic = GetComponent<PlayerMagic>();
+
+        swordHitbox.SetOwner(this);
+        swordHitbox.gameObject.SetActive(false);
+    }
 
     void Update()
     {
-        // åïçUåÇ
-        if (Input.GetMouseButtonDown(0))
-        {
-            StartCoroutine(SwordAttack());
-        }
+        if (magic != null && magic.IsCasting) return;
 
-        // ñÇñ@ E
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetMouseButtonDown(0) && canAttack)
         {
-            MagicAttack(status.magicPowerE, status.magicCostE);
-        }
-
-        // ñÇñ@ Q
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            MagicAttack(status.magicPowerQ, status.magicCostQ);
+            StartCoroutine(AttackRoutine());
         }
     }
 
-    IEnumerator SwordAttack()
+    private IEnumerator AttackRoutine()
     {
-        if (isAttacking) yield break;
+        canAttack = false;
+        swordHitbox.gameObject.SetActive(true);
 
-        isAttacking = true;
-        swordCollider.enabled = true;
-        yield return new WaitForSeconds(0.2f);
-        swordCollider.enabled = false;
-        isAttacking = false;
+        yield return new WaitForSeconds(attackDuration);
+
+        swordHitbox.gameObject.SetActive(false);
+        yield return new WaitForSeconds(attackCooldown);
+
+        canAttack = true;
     }
 
-    void MagicAttack(float power, float cost)
-    {
-        if (!status.UseMP(cost)) return;
-
-        Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-        {
-            if (hit.collider.TryGetComponent<EnemyTemporary>(out EnemyTemporary enemy))
-            {
-                enemy.TakeDamage(power);
-            }
-        }
-    }
-
-    public float GetPhysicalDamage()
+    public float GetAttackPower()
     {
         return status.STR;
     }

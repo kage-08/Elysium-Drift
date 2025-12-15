@@ -2,55 +2,66 @@ using UnityEngine;
 
 public class PlayerStatus : MonoBehaviour
 {
-    // -------- 基本ステータス --------
+    [Header("Base Status")]
     public int level = 1;
+    public float STR = 10f;
 
+    [Header("HP")]
     public float maxHP = 100f;
-    public float currentHP = 100f;
+    public float HP { get; private set; }
 
+    [Header("MP")]
     public float maxMP = 50f;
-    public float currentMP = 50f;
+    public float MP { get; private set; }
 
+    [Header("Stamina")]
     public float maxStamina = 100f;
-    public float currentStamina = 100f;
+    public float stamina { get; private set; }
 
-    public int STR = 10;
-
-    // -------- 魔法設定 --------
-    public float magicPowerE = 30f;
-    public float magicPowerQ = 50f;
-    public float magicCostE = 10f;
-    public float magicCostQ = 20f;
-
-    // -------- ダッシュ用 --------
-    public float staminaConsumeDash = 20f;
-    public float staminaConsumeDashPerSec = 15f;
-    public float staminaRecoverPerSec = 10f;
-
-    // -------- マップ用情報 --------
-    public Vector3 position;   // x,y,z
-    public Vector3 forward;    // 向いている方向
-
-    // -------- 汎用関数 --------
-    public bool UseStamina(float value)
+    void Awake()
     {
-        if (currentStamina < value) return false;
-        currentStamina -= value;
-        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
+        HP = maxHP;
+        MP = maxMP;
+        stamina = maxStamina;
+    }
+
+    // ===== HP =====
+    public void TakeDamage(float damage)
+    {
+        HP = Mathf.Max(HP - damage, 0f);
+    }
+
+    // ===== MP =====
+    public bool ConsumeMP(float amount)
+    {
+        if (MP < amount) return false;
+        MP -= amount;
         return true;
     }
 
-    public bool UseMP(float value)
+    // ===== Stamina =====
+    public bool CanDash()
     {
-        if (currentMP < value) return false;
-        currentMP -= value;
-        currentMP = Mathf.Clamp(currentMP, 0, maxMP);
-        return true;
+        return stamina > 0f;
+    }
+
+    public void ConsumeStamina()
+    {
+        ConsumeStamina(20f);
+    }
+
+    public void ConsumeStamina(float amountPerSecond)
+    {
+        stamina = Mathf.Max(stamina - amountPerSecond * Time.deltaTime, 0f);
     }
 
     public void RecoverStamina()
     {
-        currentStamina += staminaRecoverPerSec * Time.deltaTime;
-        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
+        RecoverStamina(30f);
+    }
+
+    public void RecoverStamina(float amountPerSecond)
+    {
+        stamina = Mathf.Min(stamina + amountPerSecond * Time.deltaTime, maxStamina);
     }
 }

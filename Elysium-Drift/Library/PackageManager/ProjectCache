@@ -1273,7 +1273,7 @@ m_ResolvedPackages:
     - 5.0.3
     - 5.0.4
     - 5.1.0
-    recommended: 5.0.4
+    recommended: 5.1.0
     deprecated: []
   dependencies:
   - name: com.unity.ugui
@@ -1333,7 +1333,7 @@ m_ResolvedPackages:
   unityLifecycle:
     version: 4.12.2
     nextVersion: 5.0.0-pre.1
-    recommendedVersion: 5.0.0
+    recommendedVersion: 5.1.0
     isDeprecated: 0
     deprecationMessage: 
   isDeprecated: 0
