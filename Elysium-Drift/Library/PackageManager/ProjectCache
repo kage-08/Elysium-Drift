@@ -725,11 +725,13 @@ m_ResolvedPackages:
     - 2.10.0
     - 2.10.1
     - 2.10.2
+    - 2.11.2
     compatible:
     - 2.9.3
     - 2.10.0
     - 2.10.1
     - 2.10.2
+    - 2.11.2
     recommended: 2.9.3
     deprecated: []
   dependencies: []
@@ -978,10 +980,12 @@ m_ResolvedPackages:
     - 2.0.22
     - 2.0.23
     - 2.0.25
+    - 2.0.26
     compatible:
     - 2.0.23
     - 2.0.25
-    recommended: 2.0.25
+    - 2.0.26
+    recommended: 2.0.26
     deprecated: []
   dependencies:
   - name: com.unity.test-framework
@@ -1254,6 +1258,7 @@ m_ResolvedPackages:
     - 5.0.3
     - 5.0.4
     - 5.1.0
+    - 5.1.1
     compatible:
     - 4.12.2
     - 4.13.0
@@ -1273,7 +1278,8 @@ m_ResolvedPackages:
     - 5.0.3
     - 5.0.4
     - 5.1.0
-    recommended: 5.1.0
+    - 5.1.1
+    recommended: 5.1.1
     deprecated: []
   dependencies:
   - name: com.unity.ugui
