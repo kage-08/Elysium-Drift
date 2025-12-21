@@ -2,124 +2,118 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
 {
-    [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float dashMultiplier = 1.8f;
-    [SerializeField] private float jumpPower = 5f;
+    [Header("Move")]
+    public float moveSpeed = 6f;
+    public float jumpPower = 5f;
 
-    [Header("Camera")]
-    [SerializeField] private Transform cameraPivot;
-    [SerializeField] private float mouseSensitivity = 2.5f;
-    [SerializeField] private float minPitch = -80f;
-    [SerializeField] private float maxPitch = 80f;
+    [Header("Dash")]
+    public float dashMultiplier = 2f;
+    public float dashStaminaCost = 20f;
+
+    [Header("Look")]
+    public float mouseSensitivity = 3f;
+    public Transform cameraPivot;
 
     [Header("Crouch")]
-    [SerializeField] private float crouchHeight = 1.0f;
-    [SerializeField] private float standHeight = 1.8f;
-    [SerializeField] private float crouchSpeedMultiplier = 0.5f;
+    public float crouchHeight = 1f;
+    public float standHeight = 1.8f;
 
-    private Rigidbody rb;
-    private PlayerStatus status;
+    Rigidbody rb;
+    PlayerStatus status;
 
-    private bool isDash;
-    private bool isJump;
-    private bool isCrouch;
-    private float pitch;
+    bool isGrounded;
+    bool isDash;
+    bool isCrouch;
+
+    float rotX;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         status = GetComponent<PlayerStatus>();
-        rb.freezeRotation = true;
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
     void Update()
     {
-        HandleMouseLook();
-        HandleDash();
-        HandleCrouch();
-        HandleJump();
+        Look();
+        DashInput();
+        CrouchInput();
+        Jump();
     }
 
     void FixedUpdate()
     {
-        HandleMove();
+        Move();
+        RecoverStamina();
     }
 
-    private void HandleMove()
+    void Move()
     {
-        float speed = moveSpeed;
-        if (isDash) speed *= dashMultiplier;
-        if (isCrouch) speed *= crouchSpeedMultiplier;
-
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        Vector3 move = (transform.forward * v + transform.right * h).normalized;
+        float speed = moveSpeed;
 
-        rb.linearVelocity = new Vector3(
-            move.x * speed,
-            rb.linearVelocity.y,
-            move.z * speed
-        );
-    }
-
-    private void HandleMouseLook()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * 100f * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * 100f * Time.deltaTime;
-
-        transform.Rotate(Vector3.up * mouseX);
-
-        pitch -= mouseY;
-        pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
-        cameraPivot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-    }
-
-    private void HandleDash()
-    {
-        if (Input.GetKey(KeyCode.LeftShift) && status.CanDash())
+        if (isDash && status.stamina > 0f)
         {
-            isDash = true;
-            status.ConsumeStamina();
+            speed *= dashMultiplier;
+            status.stamina -= dashStaminaCost * Time.fixedDeltaTime;
         }
-        else
+
+        Vector3 dir = transform.forward * v + transform.right * h;
+        rb.linearVelocity = new Vector3(dir.x * speed, rb.linearVelocity.y, dir.z * speed);
+    }
+
+    void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            isDash = false;
-            status.RecoverStamina();
+            rb.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
+            isGrounded = false;
         }
     }
 
-    private void HandleJump()
+    void DashInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isJump)
-        {
-            rb.linearVelocity = new Vector3(
-                rb.linearVelocity.x,
-                jumpPower,
-                rb.linearVelocity.z
-            );
-            isJump = true;
-        }
+        isDash = Input.GetKey(KeyCode.LeftShift) && status.stamina > 0f;
     }
 
-    private void HandleCrouch()
+    void CrouchInput()
     {
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             isCrouch = !isCrouch;
-            Vector3 pos = cameraPivot.localPosition;
-            pos.y = isCrouch ? crouchHeight : standHeight;
-            cameraPivot.localPosition = pos;
+            cameraPivot.localPosition =
+                new Vector3(0, isCrouch ? crouchHeight : standHeight, 0);
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void Look()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-            isJump = false;
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * 100f * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * 100f * Time.deltaTime;
+
+        rotX -= mouseY;
+        rotX = Mathf.Clamp(rotX, -85f, 85f);
+
+        cameraPivot.localRotation = Quaternion.Euler(rotX, 0, 0);
+        transform.Rotate(Vector3.up * mouseX);
+    }
+
+    void RecoverStamina()
+    {
+        if (!isDash)
+        {
+            status.stamina += 30f * Time.fixedDeltaTime;
+            status.stamina = Mathf.Min(status.stamina, status.maxStamina);
+        }
+    }
+
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.CompareTag("Ground"))
+            isGrounded = true;
     }
 }

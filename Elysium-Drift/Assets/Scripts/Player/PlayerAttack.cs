@@ -3,48 +3,53 @@ using System.Collections;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [SerializeField] private float attackCooldown = 0.5f;
-    [SerializeField] private float attackDuration = 0.2f;
-    [SerializeField] private SwordHitbox swordHitbox;
+    public PlayerStatus status;
+    public float swordDamageMultiplier = 1f;
 
-    private PlayerStatus status;
-    private PlayerMagic magic;
-    private bool canAttack = true;
+    [Header("Magic")]
+    public float magicDamage = 30f;
+    public float magicCost = 10f;
+    public float castTime = 1.5f;
 
-    void Start()
-    {
-        status = GetComponent<PlayerStatus>();
-        magic = GetComponent<PlayerMagic>();
-
-        swordHitbox.SetOwner(this);
-        swordHitbox.gameObject.SetActive(false);
-    }
+    bool isCasting;
 
     void Update()
     {
-        if (magic != null && magic.IsCasting) return;
+        SwordAttack();
+        MagicAttack(KeyCode.Q);
+        MagicAttack(KeyCode.E);
+    }
 
-        if (Input.GetMouseButtonDown(0) && canAttack)
+    void SwordAttack()
+    {
+        if (Input.GetMouseButtonDown(0) && !isCasting)
         {
-            StartCoroutine(AttackRoutine());
+            // Œ•‚ÌCollider‚Å”»’èi‚±‚±‚Å‚Íˆ—‚¾‚¯j
         }
     }
 
-    private IEnumerator AttackRoutine()
+    void MagicAttack(KeyCode key)
     {
-        canAttack = false;
-        swordHitbox.gameObject.SetActive(true);
+        if (Input.GetKeyDown(key))
+        {
+            if (isCasting)
+            {
+                StopAllCoroutines();
+                isCasting = false;
+                return;
+            }
 
-        yield return new WaitForSeconds(attackDuration);
-
-        swordHitbox.gameObject.SetActive(false);
-        yield return new WaitForSeconds(attackCooldown);
-
-        canAttack = true;
+            if (status.MP >= magicCost)
+                StartCoroutine(CastMagic());
+        }
     }
 
-    public float GetAttackPower()
+    IEnumerator CastMagic()
     {
-        return status.STR;
+        isCasting = true;
+        yield return new WaitForSeconds(castTime);
+
+        status.MP -= magicCost;
+        isCasting = false;
     }
 }
